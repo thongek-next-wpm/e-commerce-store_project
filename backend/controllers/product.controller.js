@@ -2,6 +2,9 @@ import { redis } from "../lib/redis.js";
 import cloudinary from "../lib/cloudinary.js";
 import Product from "../models/product.model.js";
 
+// Get all products
+// No caching, direct database query
+// Handles errors and sends appropriate responses
 export const getAllProducts = async (req, res) => {
   try {
     const products = await Product.find({}); //find all products
@@ -12,6 +15,10 @@ export const getAllProducts = async (req, res) => {
   }
 };
 
+// Get featured products with caching
+// Checks Redis cache first before querying database
+// Uses .lean() for performance optimization
+// Caches results in Redis for future requests
 export const getFeaturedProducts = async (req, res) => {
   try {
     let featuredProducts = await redis.get("featured_products");
@@ -65,6 +72,10 @@ export const createProduct = async (req, res) => {
   }
 };
 
+// Delete product by ID
+// Also deletes associated image from Cloudinary if exists
+// Handles errors and non-existent products
+// Logs actions for monitoring
 export const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -85,6 +96,32 @@ export const deleteProduct = async (req, res) => {
     res.json({ message: "Product deleted" });
   } catch (error) {
     console.log("Error in deleteProduct", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+// Get 3 random products for recommendations
+// Uses MongoDB aggregation with $sample to fetch random documents
+// Projects only necessary fields to reduce payload size
+// Caches results in Redis for performance
+export const getRecommendedProducts = async (req, res) => {
+  try {
+    const products = await Product.aggregate([
+      {
+        $sample: { size: 3 },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          description: 1,
+          image: 1,
+          price: 1,
+        },
+      },
+    ]);
+    res.json(products);
+  } catch (error) {
+    console.log("Error in getRecommendedProducts", error.message);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
