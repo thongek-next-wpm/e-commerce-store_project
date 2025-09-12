@@ -142,3 +142,40 @@ export const getproductesByCategory = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+// Toggle the 'isfeatured' status of a product by ID
+// Expects a boolean 'isfeatured' in the request body
+// Updates the product and returns the updated document
+// Also updates the Redis cache for featured products
+// Handles errors and non-existent products
+export const toggleFeaturedProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (product) {
+      product.isFeatured = !product.isFeatured;
+      const updatedProduct = await product.save();
+      await updateFeaturedProductsCache();
+      res.json(updatedProduct);
+    } else {
+      res.status(404).json({ message: "Product not found" });
+    }
+  } catch (error) {
+    console.log("Error in toggleFeaturedProduct controller", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Helper function to update the Redis cache for featured products
+// Fetches the latest featured products from the database
+// Uses .lean() for performance optimization
+// Updates the Redis cache with the new list
+async function updateFeaturedProductsCache() {
+  try {
+    // The Lean method is used to improve performance by returning plain JavaScript objects instead of Mongoose documents
+    // This is beneficial for read-only operations like caching
+    const featuredProducts = await Product.find({ isfeatured: true }).lean();
+    await redis.set("featured_products", JSON.stringify(featuredProducts));
+  } catch (error) {
+    console.log("Error updating featured products cache");
+  }
+}
