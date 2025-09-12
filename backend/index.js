@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import authRouters from "./routers/auth.route.js";
 import { connectDB } from "./lib/database.js";
 import productRoutes from "./routers/product.route.js";
+import cartRoutes from "./routers/cart.route.js";
 
 //environment variables
 
@@ -20,6 +21,8 @@ app.use(cookieParser());
 //authentication
 app.use("/api/auth", authRouters);
 app.use("/api/products", productRoutes);
+app.use("/api/cart", cartRoutes);
+
 
 app.listen(PORT, () => {
   console.log("Server is running on http://localhost:" + PORT);
