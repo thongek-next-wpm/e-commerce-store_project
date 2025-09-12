@@ -125,3 +125,20 @@ export const getRecommendedProducts = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+// Get products by category
+// No caching, direct database query
+// Handles errors and sends appropriate responses
+// Category is passed as a URL parameter
+// Example: /category/electronics
+// Returns all products matching the specified category
+export const getproductesByCategory = async (req, res) => {
+  const { category } = req.params;
+  try {
+    const products = await Product.find({ category }); //find all products
+    res.json({ products });
+  } catch (error) {
+    console.log("Error in getproductesByCategory", error.Product);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
