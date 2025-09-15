@@ -1,6 +1,13 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.models.js";
 
+// Middleware to protect routes and ensure the user is authenticated
+// If authenticated, attaches user information to req.user
+// If not authenticated, responds with status 401 and message "Unauthorized"
+// Example usage:
+// app.get("/api/protected", productsRoute, (req, res) => {
+//   res.json({ message: "This is a protected route", user: req.user });
+// });
 export const productsRoute = async (req, res, next) => {
   // Middleware logic here (e.g., authentication, logging, etc.)
   try {
@@ -35,6 +42,13 @@ export const productsRoute = async (req, res, next) => {
   }
 };
 
+// Middleware to ensure the user has admin privileges
+// If the user is an admin, proceeds to the next middleware or route handler
+// If not, responds with status 403 and message "Forbidden - Admins only"
+// Example usage:
+// app.get("/api/admin", productsRoute, adminRoute, (req, res) => {
+//   res.json({ message: "This is an admin route", user: req.user });
+//})
 export const adminRoute = (req, res, next) => {
   if (req.user && req.user.role === "admin") {
     next(); // User is admin, proceed to the next middleware or route handler

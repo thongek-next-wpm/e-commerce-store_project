@@ -2,6 +2,13 @@ import User from "../models/user.models.js";
 import jwt from "jsonwebtoken";
 import { redis } from "../lib/redis.js";
 
+// Function to generate access and refresh tokens
+// userId: user's id
+// returns: { accessToken, refreshToken }
+// accessToken: JWT access token
+// refreshToken: JWT refresh token
+// expiresIn: access token expires in 15 minutes
+// expiresIn: refresh token expires in 7 days
 const generateTokens = (userId) => {
   const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "15m",
@@ -14,6 +21,14 @@ const generateTokens = (userId) => {
   return { accessToken, refreshToken };
 };
 
+// Store refresh token in Redis with an expiration time of 7 days
+// await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7 * 24 * 60 * 60);
+// 7 days
+// EX: sets the expiration time in seconds
+// 7 * 24 * 60 * 60 = 604800 seconds
+// userId: user's id
+// refreshToken: the refresh token to be stored
+// function to store refresh token
 const storeRefreshToken = async (userId, refreshToken) => {
   await redis.set(
     `refresh_token:${userId}`,
@@ -23,6 +38,13 @@ const storeRefreshToken = async (userId, refreshToken) => {
   ); // 7days
 };
 
+// Set cookies for access and refresh tokens
+// setCookies(res, accessToken, refreshToken);
+// httpOnly: true, // prevent XSS attacks, cross site scripting attack
+// secure: process.env.NODE_ENV === "production",
+// sameSite: "strict", // prevents CSRF attack, cross-site request forgery attack
+// maxAge: 15 * 60 * 1000, // 15 minutes
+// maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 const setCookies = (res, accessToken, refreshToken) => {
   res.cookie("accessToken", accessToken, {
     httpOnly: true, // prevent XSS attacks, cross site scripting attack
@@ -38,6 +60,11 @@ const setCookies = (res, accessToken, refreshToken) => {
   });
 };
 
+// User signup
+// POST /api/auth/signup
+// Request body: { name: String, email: String, password: String }
+// Response: { _id, name, email, role }
+// Example request body: { "name": "John Doe", "email": "
 export const signup = async (req, res) => {
   const { email, password, name } = req.body;
   try {
@@ -69,6 +96,13 @@ export const signup = async (req, res) => {
   }
 };
 
+// User login
+// POST /api/auth/login
+// Request body: { email: String, password: String }
+// Response: { _id, name, email, role }
+// Example request body: { "email": "L2yKk@example.com", "password": "password123" }
+// Example response: { "_id": "userId", "name": "John Doe", "email": "L2yKk@example.com", "role": "user" }
+// If login fails, respond with status 400 and message "Invalid email or password"
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -95,6 +129,13 @@ export const login = async (req, res) => {
   }
 };
 
+// User logout
+// POST /api/auth/logout
+// Requires authentication
+// Response: { message: "Logged out successfully" }
+// Example response: { "message": "Logged out successfully" }
+// On logout, clear the accessToken and refreshToken cookies
+// and remove the refresh token from Redis
 export const logout = async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken;
@@ -115,6 +156,13 @@ export const logout = async (req, res) => {
   }
 };
 
+// Refresh access token
+// POST /api/auth/refresh-token
+// Request: No body required, but requires refreshToken cookie
+// Response: { message: "Token refreshed successfully" }
+// Example response: { "message": "Token refreshed successfully" }
+// If no refresh token is provided, respond with status 401 and message "No refresh token provided"
+// If the refresh token is invalid, respond with status 401 and message "Invalid refresh token"
 export const refreshToken = async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken;
@@ -150,6 +198,12 @@ export const refreshToken = async (req, res) => {
   }
 };
 
+// Get user profile
+// GET /api/auth/profile
+// Requires authentication
+// Response: { _id, name, email, role }
+// Example response: { "_id": "userId", "name": "John Doe", "email": "  "
+// If not authenticated, respond with status 401 and message "Not authenticated"
 export const getProfile = async (req, res) => {
   try {
     res.json(req.user);

@@ -10,6 +10,18 @@ import cartRoutes from "./routers/cart.route.js";
 
 //environment variables
 
+// const MONGO_URI = process.env.MONGO_URI;
+//database connection string
+// const PORT = process.env.PORT || 6379;
+//server port
+//middleware to parse cookies
+//middleware to parse json data/body of the request
+//routes for authentication
+//routes for products
+//routes for cart
+//start the server and listen on the specified port
+//connect to the database
+
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 6379;
