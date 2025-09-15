@@ -9,6 +9,7 @@ import { connectDB } from "./lib/database.js";
 import productRoutes from "./routers/product.route.js";
 import cartRoutes from "./routers/cart.route.js";
 import couponRoutes from "./routers/coupon.route.js";
+import paymentRoutes from "./routers/payment.route.js";
 
 //environment variables
 
@@ -37,6 +38,7 @@ app.use("/api/auth", authRouters);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/coupons", couponRoutes);
+app.use("/api/payments", paymentRoutes);
 
 //start the server
 app.listen(PORT, () => {
