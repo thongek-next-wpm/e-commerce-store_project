@@ -109,11 +109,18 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
     console.log("Here runs the login:", email);
 
+    // If user exists and password matches
     if (user && (await user.comparePassword(password))) {
       const { accessToken, refreshToken } = generateTokens(user._id);
       await storeRefreshToken(user._id, refreshToken);
       setCookies(res, accessToken, refreshToken);
-
+      // Return user details
+      // Exclude password and other sensitive information
+      // Example response:
+      // { "_id": "userId", "name": "John Doe", "email": "
+      // "role": "user" }
+      // If you want to include more user details, add them here
+      // Do not include password or sensitive information
       res.json({
         _id: user._id,
         name: user.name,
@@ -137,6 +144,18 @@ export const login = async (req, res) => {
 // On logout, clear the accessToken and refreshToken cookies
 // and remove the refresh token from Redis
 export const logout = async (req, res) => {
+  // Assuming req.user is populated by authentication middleware
+  // Clear cookies
+  // Remove refresh token from Redis
+  // Respond with success message
+  // If any error occurs, respond with status 500 and message "Server error"
+  // Example response: { "message": "Logged out successfully" }
+  // If no refresh token is found in cookies, still clear cookies and respond with success message
+  // This ensures that the user is logged out even if the refresh token is missing
+  // Clear cookies
+  // Remove refresh token from Redis
+  // Respond with success message
+  // If any error occurs, respond with status 500 and message "Server error"
   try {
     const refreshToken = req.cookies.refreshToken;
     if (refreshToken) {
@@ -164,8 +183,20 @@ export const logout = async (req, res) => {
 // If no refresh token is provided, respond with status 401 and message "No refresh token provided"
 // If the refresh token is invalid, respond with status 401 and message "Invalid refresh token"
 export const refreshToken = async (req, res) => {
+  // Get refresh token from cookies
+  // If no refresh token, respond with 401
+  // Verify refresh token
+  // If invalid, respond with 401
+  // Check if refresh token exists in Redis
+  // If not, respond with 401
+  // Generate new access token
+  // Set new access token in cookies
+  // Respond with success message
+  // If any error occurs, respond with status 500 and message "Server error"
   try {
     const refreshToken = req.cookies.refreshToken;
+
+    // If no refresh token, respond with 401
 
     if (!refreshToken) {
       return res.status(401).json({ message: "No refresh token provided" });
@@ -174,9 +205,13 @@ export const refreshToken = async (req, res) => {
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
     const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
 
+    // If no token in Redis or tokens do not match, respond with 401
     if (storedToken !== refreshToken) {
       return res.status(401).json({ message: "Invalid refresh token" });
     }
+    // Generate new access token
+    // Set new access token in cookies
+    // Respond with success message
 
     const accessToken = jwt.sign(
       { userId: decoded.userId },
@@ -184,6 +219,11 @@ export const refreshToken = async (req, res) => {
       { expiresIn: "15m" }
     );
 
+    // Set new access token in cookies
+    // httpOnly: true,
+    // secure: process.env.NODE_ENV === "production",
+    // sameSite: "strict",
+    // maxAge: 15 * 60 * 1000, // 15 minutes
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

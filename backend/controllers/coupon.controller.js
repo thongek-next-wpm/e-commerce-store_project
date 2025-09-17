@@ -40,6 +40,16 @@ export const getCoupon = async (req, res) => {
 // Validates the provided coupon code for the authenticated user
 // If the coupon is valid and active, returns the coupon details
 // If the coupon is invalid or inactive, returns an error message
+// Example response for valid coupon:
+// {
+//   "message": "Coupon code is valid",
+//   "code": "DISCOUNT10",
+//   "discountPercentage": 10
+// }
+// Example response for invalid coupon:
+// {
+//   "message": "Invalid or inactive coupon code"
+// }
 
 export const validateCoupon = async (req, res) => {
   // Assuming req.user is populated by authentication middleware
